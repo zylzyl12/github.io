@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>随机抽题转盘</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system}
+body{background:#f7f7f7;display:flex;flex-direction:column;align-items:center;padding:30px 10px}
+.wrap{position:relative;width:320px;height:320px}
+.pointer{
+  position:absolute;
+  top:-12px;
+  left:50%;
+  transform:translateX(-50%);
+  width:0;
+  height:0;
+  border-left:14px solid transparent;
+  border-right:14px solid transparent;
+  border-top:26px solid #222;
+  z-index:3;
+}
+#wheel{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  background:conic-gradient(
+    #4285f4 0 50%,
+    #ea4335 50% 100%
+  );
+  transition: transform 5s cubic-bezier(0.2,0.8,0.2,1);
+  box-shadow: 0 0 12px #0003;
+}
+.center-btn{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:90px;height:90px;
+  border-radius:50%;
+  background:#fff;
+  border:3px solid #ddd;
+  font-size:18px;font-weight:bold;
+  color:#333;
+  cursor:pointer;
+  z-index:2;
+}
+.center-btn:disabled{
+  background:#eee;
+  color:#999;
+  cursor:not-allowed;
+}
+.tip{margin-top:24px;font-size:16px;color:#222}
+.result{margin-top:12px;font-size:24px;font-weight:bold;color:#c82423;height:34px}
+.label-a{position:absolute;top:70px;right:45px;color:#fff;font-weight:bold;font-size:16px}
+.label-b{position:absolute;bottom:70px;left:45px;color:#fff;font-weight:bold;font-size:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="pointer"></div>
+  <div id="wheel"></div>
+  <div class="label-a">试卷-A</div>
+  <div class="label-b">试卷-B</div>
+  <button class="center-btn" id="btn">抽题</button>
+</div>
+<div class="tip">抽取结果：</div>
+<div class="result" id="res"></div>
+
+<script>
+const wheel = document.getElementById('wheel');
+const btn = document.getElementById('btn');
+const resDom = document.getElementById('res');
+let isRunning = false;
+const list = ['试卷-A','试卷-B'];
+const perAngle = 180;
+// 简易蜂鸣音效，不加载外部音频文件
+function beep(freq=600, duration=120){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.start();
+    setTimeout(()=>osc.stop(), duration);
+  }catch(e){}
+}
+btn.onclick = async function(){
+  if(isRunning) return;
+  isRunning = true;
+  btn.disabled = true;
+  resDom.innerText = '';
+  beep(450, 300);
+  const pickIndex = Math.floor(Math.random() * list.length);
+  const baseTurn = 360 * 6;
+  const targetStart = pickIndex * perAngle;
+  const randomOffset = Math.random() * perAngle;
+  const totalRotate = baseTurn + targetStart + randomOffset;
+  wheel.style.transform = `rotate(${totalRotate}deg)`;
+  setTimeout(()=>{
+    resDom.innerText = list[pickIndex];
+    beep(800,400);
+    isRunning = false;
+    btn.disabled = false;
+  },5000)
+}
+</script>
+</body>
+</html>
